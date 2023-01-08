@@ -1,13 +1,17 @@
 # Minecraft Server on Orange Pi
 Installing and managing a Minecraft server on Ubuntu
 
-## Orange Pi setup
+
+## Orange Pi: Hardware
 
 I wanted to make a place for my kid to play Minecraft with his pals. I also wanted to try playing with a Raspberry Pi.
 
 I quickly found that Raspberry Pis are near impossible to get a hold of without paying inflated prices, so I ended up with an Orange Pi 4B, a decently-priced Raspberry Pi clone. It'll run you around [$130 on Amazon](https://www.amazon.com/Orange-Pi-Rockchip-Supported-Computer/dp/B0B9BXJT8V/) with 4GB RAM and 16GB embedded flash storage, and a shell + power supply.
 
 The [Orange Pi documentation](https://drive.google.com/drive/folders/1SCljqsaA6_KTdAxuqCBW38B6MWWKCRr-) is decent, and they have [OS images ready to download](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/service-and-support/Orange-pi-4-B.html). [This page](https://www.androidpimp.com/embedded/orange-pi-4-review/) helped me understand where the included heatsinks are supposed to be attached (spoiler: the CPU and the flash memory, not the RAM).
+
+
+## Orange Pi: Ubuntu OS
 
 My kid uses the "pocket" (mobile/tablet) version of Minecraft, [which is Bedrock, not Java](https://www.minecraft.net/en-us/article/java-or-bedrock-edition). So, I went with the Orange Pi Ubuntu image, as I found [this excellent tutorial](https://pimylifeup.com/ubuntu-minecraft-bedrock-server/) on installing Minecraft Bedrock on Ubuntu.
 
@@ -27,9 +31,40 @@ We're in!
 Welcome to Orange Pi 3.0.6 Focal with Linux 5.10.43
 ```
 
+
+## Orange Pi: Prep for server install
+To wrap up the setup, we need to take a few more steps to prepare the Ubuntu install.
+
+Update Ubuntu dependencies:
+```
+sudo apt update
+```
+
+Download needed utils and Java Runtime Environment (headless, since we don't need a GUI to run the server):
+```
+sudo apt install curl wget unzip grep screen -y
+sudo apt-get install git openjdk-17-jre-headless
+```
+
+Create an admin user:
+```
+sudo usermod -a -G mcserver $USER
+logout
+```
+
+Log into the new user and create a folder for the server install:
+```
+ssh mcserver@192.168.42.XX
+mkdir minecraft-server
+```
+
+
 ## Installing Minecraft server
-set up user (`mcsesrver`)
-java headless
+
+When I found this [Bedrock / Ubuntu tutorial](https://pimylifeup.com/ubuntu-minecraft-bedrock-server/), I figured that would be the way to go. But [I quickly realized](https://www.reddit.com/r/admincraft/comments/tt7ig9/bedrock_server_for_arm/) that the Bedrock server doesn't have an version compiled to run on ARM processors, which is what we have on the Orange Pi. Uh-oh.
+
+The TL;DR: Run a Java server with GeyserMC and Floodgate installed to enable Bedrock clients (including those without a paid Xbox account) to connect.
+
 bedrock --> java + geyser + floodgate
 spigot --> paper
 port forwarding (virtual server) - minecraft 25565 + geyser 19132
@@ -42,49 +77,22 @@ server maintenance:
     ssh mcserver@192.168.42.42
     screen -r paper-server
 
-## Resources + Links
+## Links + tutorials
+* [Orange Pi documentation](https://drive.google.com/drive/folders/1SCljqsaA6_KTdAxuqCBW38B6MWWKCRr-)
+* [Orange Pi OS images](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/service-and-support/Orange-pi-4-B.html)
+* [Orange Pi 4 review + details](https://www.androidpimp.com/embedded/orange-pi-4-review/)
+* [Installing Ubuntu on Orange Pi 4](https://www.youtube.com/watch?v=2oDdlho_WaQ)
+* [Installing Ubuntu on Orange Pi 3 tutorial](https://longervision.github.io/2019/06/05/SBCs/ARM/orange-pi-3-official/)
+* [Minecraft: Bedrock vs Java](https://www.minecraft.net/en-us/article/java-or-bedrock-edition)
+* [Minecraft Bedrock on Ubuntu tutorial](https://pimylifeup.com/ubuntu-minecraft-bedrock-server/)
+* [SmartRG SR515AC manual](https://www.lmi.net/wp-content/uploads/Gateway_User_Manual_v3_5.pdf)
 
-
+## Resources + downloadables
+* [balenaEtcher flash OS to MicroSD](https://www.balena.io/etcher/)
+* 
 
 	
 ## WIP cruft	
-to me, Gloriane
-video instructions for flashing ubuntu image to TF card + connecting via ssh on local network (get IP from router page once connected via CAT cable to router)
-default login: root / orangepi
-then `apt-get update` to update installed software packages
-
-official Orange Pi 4B Ubuntu image
- 2 Attachments  •  Scanned by Gmail
-Preview YouTube video Orange Pi Zero Official Ubuntu Image Install and Setup Guide
-Eric Socolofsky <eric@transmote.com>
-	
-Tue, Jan 3, 5:22 PM (4 days ago)
-	
-to me, Gloriane
-other misc info/links
-
-    Orange Pi 4 docs
-    Orange Pi 4 Review w/ setup instructions + photos
-    Official Ubuntu Orange Pi 4B image
-    Installing Ubuntu on Orange Pi 3
-    Orange Pi 4B user manual
-
-Also, to get IP when hardwired (CAT cable) to sonic router, login to 192.168.42.1/admin (user: admin / pass: key from back of router), then navigate to Device Info > DHCP and look for IP listed for hostname 'orangepi4'. Currently it's 192.168.42.35, so I login via ssh root@192.168.42.35 w/ password: orangepi (root/orangepi are default for Orange Pi Ubuntu image)
-
-next steps:
-* possible (necessary?) to set static IP?
-* how to use `screen` to keep connection from laptop open?
-* ensure everything is updated to latest version on ubuntu install
-* install bedrock server
-* document everything
- 2 Attachments  •  Scanned by Gmail
-Eric Socolofsky <eric@transmote.com>
-	
-Tue, Jan 3, 7:45 PM (4 days ago)
-	
-to me, Gloriane
-support & download page for Orange Pi 4B (incl OS images)
-
 looks like i can't install a Bedrock server directly on an ARM processor (e.g. Orange Pi, Raspberry Pi, etc).
 This reddit thread suggests installing a Java server and adding GeyserMC to enable Bedrock clients to connect to a Java server. (It also suggests installing Floodgate; its docs suggest that Bedrock connections only work for users with a Java edition account, and Floodgate removes this requirement.)
 
