@@ -63,19 +63,49 @@ mkdir minecraft-server
 
 When I found this [Bedrock / Ubuntu tutorial](https://pimylifeup.com/ubuntu-minecraft-bedrock-server/), I figured that would be the way to go. But [I quickly realized](https://www.reddit.com/r/admincraft/comments/tt7ig9/bedrock_server_for_arm/) that the Bedrock server doesn't have an version compiled to run on ARM processors, which is what we have on the Orange Pi. Uh-oh.
 
-The TL;DR: Run a Java server with GeyserMC and Floodgate installed to enable Bedrock clients (including those without a paid Xbox account) to connect.
+The TL;DR: Run a [PaperMC](https://papermc.io/) (Java) server with the [GeyserMC plugin](https://geysermc.org/) installed to enable Bedrock clients to connect, and with the [Floodgate plugin](https://github.com/GeyserMC/Floodgate/) to allow those without a paid Java account to connect. Don't bother with the vanilla Java server, nor with [Spigot](https://www.spigotmc.org/) -- [Paper improves on Spigot in a number of ways](https://madelinemiller.dev/blog/paper-vs-spigot/).
 
-bedrock --> java + geyser + floodgate
-spigot --> paper
+Install and run Paper: copy the URL of the latest build on the [Paper downloads page](https://papermc.io/downloads), download it to your Orange Pi, and run it once to get things set up:
+```
+# replace with the URL from the Paper downloads page
+wget https://api.papermc.io/v2/projects/paper/versions/1.19.3/builds/372/downloads/paper-1.19.3-372.jar
+java -Xms2G -Xmx2G -jar paper-1.19.3-372.jar --nogui
+```
+
+It will take a while to initialize the first time; once you get to the server prompt, type `stop` to stop the server. After running it once (maybe twice? can't remember), a `plugins/` folder will be created adjacent to the `.jar`. Download the Spigot builds of [Geyser](https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/) and [Floodgate](https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/) into it:
+```
+cd plugins
+# replace with the URL from the Geyser and Floodgate downloads pages
+wget https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/bootstrap/spigot/build/libs/Geyser-Spigot.jar
+wget https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/spigot/build/libs/floodgate-spigot.jar
+```
+
+Run the server one more time to pick up and auto-configure the plugins:
+```
+cd ../
+java -Xms2G -Xmx2G -jar paper-1.19.3-372.jar --nogui
+```
+
+Your Minecraft Java server should now be set up and ready to accept Bedrock clients.
+
+
+## Making your server visible to the outside world
+You can now connect with your Bedrock client over your LAN, via the Friends tab. It will appear as "Geyser / Another Geyser server". If that's good enough for you, congratulations! However, the whole point for me was so my kid's friends in far-off places can play Minecraft with him. So, we need set a static IP and port forward the required ports.
+
+
+
 port forwarding (virtual server) - minecraft 25565 + geyser 19132
 setting static IP (+ checking w/ `curl https://ipinfo.io/ip`)
 
+
 ## Tightening up
+server.properties
 start + stop scripts, w/ screen
 systemd setup
 server maintenance:
     ssh mcserver@192.168.42.42
     screen -r paper-server
+testing server status w/ [yougetsignal](https://www.yougetsignal.com/tools/open-ports/)
 
 ## Links + tutorials
 * [Orange Pi documentation](https://drive.google.com/drive/folders/1SCljqsaA6_KTdAxuqCBW38B6MWWKCRr-)
@@ -86,52 +116,24 @@ server maintenance:
 * [Minecraft: Bedrock vs Java](https://www.minecraft.net/en-us/article/java-or-bedrock-edition)
 * [Minecraft Bedrock on Ubuntu tutorial](https://pimylifeup.com/ubuntu-minecraft-bedrock-server/)
 * [SmartRG SR515AC manual](https://www.lmi.net/wp-content/uploads/Gateway_User_Manual_v3_5.pdf)
+* [Paper vs Spigot](https://madelinemiller.dev/blog/paper-vs-spigot/)
+* [Minecraft wiki: setting up a server](https://minecraft.fandom.com/wiki/Tutorials/Setting_up_a_server)
+
 
 ## Resources + downloadables
 * [balenaEtcher flash OS to MicroSD](https://www.balena.io/etcher/)
-* 
+* [PaperMC](https://papermc.io/) Minecraft server
+* [GeyserMC plugin](https://geysermc.org/)
+* [Floodgate plugin](https://github.com/GeyserMC/Floodgate/)
+* [Minecraft Server Tools](https://mctools.org/)
+* [Server status checker](https://mcsrvstat.us/)
+* [Open port verifier](https://www.yougetsignal.com/tools/open-ports/)
+
 
 	
 ## WIP cruft	
-looks like i can't install a Bedrock server directly on an ARM processor (e.g. Orange Pi, Raspberry Pi, etc).
-This reddit thread suggests installing a Java server and adding GeyserMC to enable Bedrock clients to connect to a Java server. (It also suggests installing Floodgate; its docs suggest that Bedrock connections only work for users with a Java edition account, and Floodgate removes this requirement.)
 
-this post offers a walkthrough to install Java server on ARM, though it uses CentOS...will try on my Ubuntu install. It's just Java, right?
-ok, ubuntu is a bit different. here's a post on installing java on ubuntu, but the TL;DR:
-
-sudo apt install default-jdk
-
-(or maybe default-jre suffices? but i installed JDK.)
-
-ok, so ubuntu default is Java 11. Minecraft Server distro was compiled w/ Java 17, so instead (following this site) i'm trying
-
-apt install openjdk-17-jre
-
-oh and look, here's info on server requirements and on setting up a server, straight from the source.
-
-next TODOs:
-
-    rename user from `bedrock` to `mcserver`, since it's not a bedrock server after all >.<
-    continue w/ configuration, like from this bedrock tutorial (note we're not installing bedrock anymore!!) and details from minecraft wiki
-
-Eric Socolofsky <eric@transmote.com>
-	
-Tue, Jan 3, 7:46 PM (4 days ago)
-	
-to me, Gloriane
-also -- do i need to configure open ports / static IP so others can connect? (see firewall ports section on this tutorial)
-Eric Socolofsky <eric@transmote.com>
-	
-Tue, Jan 3, 7:49 PM (4 days ago)
-	
-to me, Gloriane
 looks like there's info on IP config here: https://minecraft.fandom.com/wiki/Tutorials/Setting_up_a_server#Port_forwarding
-Eric Socolofsky <eric@transmote.com>
-	
-Tue, Jan 3, 8:42 PM (4 days ago)
-	
-to me, Gloriane
-ok -- static IP is 135.180.65.19
 
 to set this up (on Sonic SmartRG router; used this guide):
 
@@ -155,7 +157,7 @@ Create Ubuntu startup script
 
 next up: get client to connect. some things to work through:
 
-    Tried to verify port is open (forwarded) on static IP via https://www.yougetsignal.com/tools/open-ports/, but 135.180.65.19:25565 is showing as closed...
+    Tried to verify port is open (forwarded) on static IP via https://www.yougetsignal.com/tools/open-ports/, but XXX.XXX.XX.XX:25565 is showing as closed...
     Enable Bedrock client to connect via GeyserMC
 
 Eric Socolofsky <eric@transmote.com>
@@ -214,7 +216,7 @@ Fri, Jan 6, 8:53 PM (23 hours ago)
 to me, Gloriane
 specified static IP for orangepi on router:
 Advanced Setup > LAN > Static IP Lease List > Add entry
-orangepi MAC address: 6e:7c:9a:76:0f:89
+orangepi MAC address: XX:XX:XX:XX:XX:XX
 static IP I chose: 192.168.42.42
 
 this ^^ did it!
