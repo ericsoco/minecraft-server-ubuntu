@@ -92,10 +92,32 @@ Your Minecraft Java server should now be set up and ready to accept Bedrock clie
 ## Making your server visible to the outside world
 You can now connect with your Bedrock client over your LAN, via the Friends tab. It will appear as "Geyser / Another Geyser server". If that's good enough for you, congratulations! However, the whole point for me was so my kid's friends in far-off places can play Minecraft with him. So, we need set a static IP and port forward the required ports.
 
+Minecraft servers expect requests from a Minecraft client on [port 25565, via TCP/UDP](https://minecraft.fandom.com/wiki/Tutorials/Setting_up_a_server). Geyser proxy servers communicate over [port 19132, via UDP](https://wiki.geysermc.org/geyser/setup/). Therefore, we need to make those ports available from our server via a technique called [_port forwarding_](https://wiki.geysermc.org/geyser/setup/). The approach varies widely across different router makes and firmwares; you can find [info for your router on portforward.com](https://portforward.com/router.htm).
 
+First, set up a static IP for your Orange Pi on your router. For my Sonic SmartRG router:
+* Go to the router admin page (192.168.42.1/admin)
+* Navigate to Advanced Setup > LAN and, under "Static IP Lease List", click Add entries
+* Switch over to your Orange Pi console and get its MAC address via [`ip link`](https://itsfoss.com/find-mac-address-linux/)
+* Choose a static IP host ID (the fourth number in the address, after the network ID configured by your router / LAN). E.g. `123` is the host ID in `192.168.42.123`.
 
-port forwarding (virtual server) - minecraft 25565 + geyser 19132
-setting static IP (+ checking w/ `curl https://ipinfo.io/ip`)
+Now that your router assigns the same, static IP to your Orange Pi every time it connects to your network, you can find the external (or "public") IP for your Orange Pi. This is the IP that Minecraft clients will use to connect to your server. Switch back over to your Orange Pi console and type `curl https://ipinfo.io/ip`. Copy this down -- this is your external IP.
+
+Then, forward the necessary ports. For my Sonic SmartRG router, I used [this guide on portforward.com](https://portforward.com/smartrg/sr516ac/). In short:
+* Go to the router admin page (192.168.42.1/admin)
+* Navigate to Advanced Setup > NAT > Virtual Servers and click Add
+* Since my Orange Pi is hardwired to my router, I selected `ipoe_eth4/eth4.1` for the "Use interface" dropdown
+* Create one entry for Minecraft server requests: 25565 for external and internal port start and end, and TCP/UDP for protocol
+* Create one entry for Geyser server requests: 19132 for external and internal port start and end, and UDP for protocol
+
+Now you can check that your server is now accessible from the outside world. Start your server from the Orange Pi console as described in the above section, and wait for it to complete startup. You can then use a tool like [yougetsignal's port checker](https://www.yougetsignal.com/tools/open-ports/) for this. Note that, for a correct setup, yougetsignal shows port 25565 (minecraft) as open, but 19132 (geyser) as closed. 
+
+Finally, set up your server on a Minecraft Bedrock client (like the [iOS version](https://apps.apple.com/us/app/minecraft/id479516143)). Our favorite setup tutorial [outlines the steps here](https://pimylifeup.com/ubuntu-minecraft-bedrock-server/#connecting-to-the-server), but the TL;DR:
+* Log into your Microsoft/Minecraft account
+* Open the Servers tab from the startup screen
+* Scroll to the bottom and tap Add Server
+* Give the server a name (that will display only on this client), type in the external IP we found above, and specify port 25565
+* Tap the server you just configured to proceed to play!
+
 
 
 ## Tightening up
@@ -118,6 +140,7 @@ testing server status w/ [yougetsignal](https://www.yougetsignal.com/tools/open-
 * [SmartRG SR515AC manual](https://www.lmi.net/wp-content/uploads/Gateway_User_Manual_v3_5.pdf)
 * [Paper vs Spigot](https://madelinemiller.dev/blog/paper-vs-spigot/)
 * [Minecraft wiki: setting up a server](https://minecraft.fandom.com/wiki/Tutorials/Setting_up_a_server)
+* [Minecraft wiki: Port forwarding](https://minecraft.fandom.com/wiki/Tutorials/Setting_up_a_server#Port_forwarding)
 
 
 ## Resources + downloadables
@@ -133,19 +156,6 @@ testing server status w/ [yougetsignal](https://www.yougetsignal.com/tools/open-
 	
 ## WIP cruft	
 
-looks like there's info on IP config here: https://minecraft.fandom.com/wiki/Tutorials/Setting_up_a_server#Port_forwarding
-
-to set this up (on Sonic SmartRG router; used this guide):
-
-    go to router admin page (192.168.42.1/admin)
-     Advanced Setup > NAT > Virtual Servers, Add, followed instructions here (set TCP/UDP to 25565 for external and internal)
-    finally, checked static IP with
-
-    curl https://ipinfo.io/ip
-
-Eric Socolofsky <eric@transmote.com>
-	
-Wed, Jan 4, 9:18 PM (3 days ago)
 	
 to me, Gloriane
 Start the Minecraft Bedrock Server at Boot on Ubuntu
@@ -155,51 +165,6 @@ also:
 Ubuntu startup script w/ extra server config features
 Create Ubuntu startup script
 
-next up: get client to connect. some things to work through:
-
-    Tried to verify port is open (forwarded) on static IP via https://www.yougetsignal.com/tools/open-ports/, but XXX.XXX.XX.XX:25565 is showing as closed...
-    Enable Bedrock client to connect via GeyserMC
-
-Eric Socolofsky <eric@transmote.com>
-	
-Wed, Jan 4, 9:44 PM (3 days ago)
-	
-to me, Gloriane
-looks like the gist for Geyser (Bedrock) is:
-
-    Install Geyser as a plugin on the server -- acts as a proxy that translates between Bedrock client and Java server
-    May also need to install Floodgate as a plugin to enable players without a Java account (only a Bedrock account) to auth+connect
-    Bedrock port is different than Java, will have to port forward 19132 UDP
-    Looks like all of this requires a new Spigot (CraftBukkit) server jar, as described here (note there are instructions here for creating a screen-based server management script also)
-
-open question: do i need to do something w/ firewalls to get the port forwarding to work?
-Eric Socolofsky <eric@transmote.com>
-	
-Wed, Jan 4, 9:49 PM (3 days ago)
-	
-to me, Gloriane
-side note, i kept seeing references to jre-headless which is probably more performant than a java install w/ a GUI (that I won't use), so i switched:
-
-sudo apt autoremove git openjdk-17-jre
-sudo apt-get install git openjdk-17-jre-headless
-Eric Socolofsky <eric@transmote.com>
-	
-Thu, Jan 5, 9:52 PM (2 days ago)
-	
-to me, Gloriane
-I've now tried three different server installs:
-
-    vanilla Java (from Mojang/MS)
-    Spigot
-    Paper
-
-Read that Paper is more modern + preferred to Spigot.
-
-Paper install instructions
-Adding plugins (note: /plugins folder doesn't exist until the server is run...twice?)
-
-re port forwarding, looks like i need to configure ubuntu to use a static IP
-https://ubuntu.com/server/docs/network-configuration (find "Static IP")
 
 consider using Aikar's flags to optimize performance
 
@@ -207,23 +172,6 @@ just noticed that Geyser has a bunch of its own configs in plugins/Geyser-Spigot
 per Geyser/Floodgate instructions, i set `auth-type: floodgate` in geyser's config.yml
 more details on geyser config.yml here
 
-...I think we're now all set up on the server side?
-just need to figure out why the port forwarding isn't working, then start trying to connect w/ bedrock client (ipad).
-Eric Socolofsky <eric@transmote.com>
-	
-Fri, Jan 6, 8:53 PM (23 hours ago)
-	
-to me, Gloriane
-specified static IP for orangepi on router:
-Advanced Setup > LAN > Static IP Lease List > Add entry
-orangepi MAC address: XX:XX:XX:XX:XX:XX
-static IP I chose: 192.168.42.42
-
-this ^^ did it!
-also reconfigured port forwarding ("Virtual Server") to have a single service with both Minecraft main and Geyser ports configured within it. Don't think that makes a difference? But documenting JIC.
-Screenshot 2023-01-06 at 8.51.06 PM.png
-Note also that yougetsignal shows port 25565 (minecraft) as open, but 19132 (geyser) as closed. However, I can add it at the bottom of Servers tab in minecraft (client, on ipad) just fine.
-Eric Socolofsky <eric@transmote.com>
 	
 Fri, Jan 6, 9:50 PM (23 hours ago)
 	
