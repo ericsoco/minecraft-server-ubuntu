@@ -68,8 +68,8 @@ The TL;DR: Run a [PaperMC](https://papermc.io/) (Java) server with the [GeyserMC
 Install and run Paper: copy the URL of the latest build on the [Paper downloads page](https://papermc.io/downloads), download it to your Orange Pi, and run it once to get things set up:
 ```
 # replace with the URL from the Paper downloads page
-wget https://api.papermc.io/v2/projects/paper/versions/1.19.3/builds/372/downloads/paper-1.19.3-372.jar
-java -Xms2G -Xmx2G -jar paper-1.19.3-372.jar --nogui
+wget -O paper.jar https://api.papermc.io/v2/projects/paper/versions/1.19.3/builds/372/downloads/paper-1.19.3-372.jar
+java -Xms2G -Xmx2G -jar paper.jar --nogui
 ```
 
 It will take a while to initialize the first time; once you get to the server prompt, type `stop` to stop the server. After running it once (maybe twice? can't remember), a `plugins/` folder will be created adjacent to the `.jar`. Download the Spigot builds of [Geyser](https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/) and [Floodgate](https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/) into it:
@@ -83,7 +83,7 @@ wget https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccess
 Run the server one more time to pick up and auto-configure the plugins:
 ```
 cd ../
-java -Xms2G -Xmx2G -jar paper-1.19.3-372.jar --nogui
+java -Xms2G -Xmx2G -jar paper.jar --nogui
 ```
 
 Your Minecraft Java server should now be set up and ready to accept Bedrock clients.
@@ -119,8 +119,8 @@ Finally, set up your server on a Minecraft Bedrock client (like the [iOS version
 * Tap the server you just configured to proceed to play!
 
 
-
 ## Tightening up
+```TODO```
 server.properties
 start + stop scripts, w/ screen
 systemd setup
@@ -128,6 +128,34 @@ server maintenance:
     ssh mcserver@192.168.42.42
     screen -r paper-server
 testing server status w/ [yougetsignal](https://www.yougetsignal.com/tools/open-ports/)
+
+
+## Updating
+As Minecraft clients update, you'll need to keep your server updated as well.
+
+After an accidental Minecraft Bedrock update on our iPad, we started seeing this error when trying to connect:
+```
+Outdated Geyser proxy! This server supports the following Bedrock versions: 1.19.20, 1.19.21/1.19.22, 1.19.30/1.19.31, 1.19.40/1.19.41, 1.19.50/1.19.51
+```
+
+Updating is as simple as downloading new JAR files for Paper, Geyser, and Floodgate. Following the same process as **Installing Minecraft server** above:
+
+```
+# replace with the URL from the [Paper downloads page](https://papermc.io/downloads)
+wget -O paper.jar https://api.papermc.io/v2/projects/paper/versions/1.19.3/builds/372/downloads/paper-1.19.3-372.jar
+
+cd plugins
+
+wget https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/bootstrap/spigot/build/libs/Geyser-Spigot.jar
+wget https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/spigot/build/libs/floodgate-spigot.jar
+```
+
+Start your server again and you're on the newest shiny!
+
+_One note_ -- when I went through this process, I stumbled into an error (that I didn't capture to paste here, sorry) where Java threw an error that `.console_history` was in an incorrect format, and would sometimes crash on launch, and other times would not respond to client requests / connections. Because the error was sometimes non-fatal, I didn't notice it in the server output logs at first.
+
+The solution was to just `rm .console_history` and let it rebuild on the next server launch.
+
 
 ## Links + tutorials
 * [Orange Pi documentation](https://drive.google.com/drive/folders/1SCljqsaA6_KTdAxuqCBW38B6MWWKCRr-)
