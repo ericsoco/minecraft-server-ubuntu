@@ -118,6 +118,10 @@ Finally, set up your server on a Minecraft Bedrock client (like the [iOS version
 * Give the server a name (that will display only on this client), type in the external IP we found above, and specify port 25565
 * Tap the server you just configured to proceed to play!
 
+### Troubleshooting (Feb 2024+)
+The static IP assigned here remains fixed across server reboots. However, _as soon as the router restarts_, the device running the server gets a new static IP. In this case, you won't be able to connect from the Minecraft Bedrock client, and you'll see that [yougetsignal's port checker](https://www.yougetsignal.com/tools/open-ports/) shows the port is closed. For some reason, this also meant I needed to remove the forwarded port configs for 25565 / 19132 that we added in Advanced Setup > NAT > Virtual Servers and re-add them. After this, we're now able to connect from outside the LAN again. Note you'll also need to `curl https://ipinfo.io/ip` again from the OrangePI to get the newly-assigned static IP, and update that in the server config on your Minecraft client (e.g. on your iPad).
+
+Also, for some reason, the port configured on the client must now be 19132, the Geyser proxy, unlike the 25565 entry we used previously. This may actually be a mistake in my previous documentation; I think Java clients may use 25565, but Bedrock clients need to connect to the Geyser proxy (via port 19132) to get proxied through to our Java/PaperMC server.
 
 ## Tightening up
 ```TODO```
