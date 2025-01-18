@@ -65,7 +65,7 @@ When I found this [Bedrock / Ubuntu tutorial](https://pimylifeup.com/ubuntu-mine
 
 The TL;DR: Run a [PaperMC](https://papermc.io/) (Java) server with the [GeyserMC plugin](https://geysermc.org/) installed to enable Bedrock clients to connect, and with the [Floodgate plugin](https://github.com/GeyserMC/Floodgate/) to allow those without a paid Java account to connect. Don't bother with the vanilla Java server, nor with [Spigot](https://www.spigotmc.org/) -- [Paper improves on Spigot in a number of ways](https://madelinemiller.dev/blog/paper-vs-spigot/).
 
-Install and run Paper: copy the URL of the latest build on the [Paper downloads page](https://papermc.io/downloads), download it to your Orange Pi, and run it once to get things set up:
+Install and run Paper: copy the URL of the latest build on the [Paper downloads page](https://papermc.io/downloads), download it to your Orange Pi, and run it once to get things set up. _(Note the `wget` connections from the Orange Pi tend to timeout a lot and require multiple tries, though usually they eventually get through; if not, download to your local machine and `scp` them over to your Orange Pi.)_:
 ```
 # replace with the URL from the Paper downloads page
 wget -O paper.jar https://api.papermc.io/v2/projects/paper/versions/1.19.3/builds/372/downloads/paper-1.19.3-372.jar
@@ -76,8 +76,8 @@ It will take a while to initialize the first time; once you get to the server pr
 ```
 cd plugins
 # replace with the URL from the Geyser and Floodgate downloads pages
-wget https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/bootstrap/spigot/build/libs/Geyser-Spigot.jar
-wget https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/spigot/build/libs/floodgate-spigot.jar
+wget -O Geyser-Spigot.jar https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot
+wget -O floodgate-spigot.jar https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot
 ```
 
 Run the server one more time to pick up and auto-configure the plugins:
@@ -150,9 +150,10 @@ wget -O paper.jar https://api.papermc.io/v2/projects/paper/versions/1.19.3/build
 
 cd plugins
 
-wget https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/lastSuccessfulBuild/artifact/bootstrap/spigot/build/libs/Geyser-Spigot.jar
-wget https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/lastSuccessfulBuild/artifact/spigot/build/libs/floodgate-spigot.jar
+wget -O Geyser-Spigot.jar https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot
+wget -O floodgate-spigot.jar https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot
 ```
+_(Reminder that the `wget` connections from the Orange Pi tend to timeout a lot and require multiple tries, though usually they eventually get through; if not, download to your local machine and `scp` them over to your Orange Pi.)_
 
 Start your server again and you're on the newest shiny!
 
